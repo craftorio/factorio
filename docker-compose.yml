@@ -7,11 +7,8 @@
 # directory by its absolute path (${PWD}) so that compose inside the job
 # resolves ./data to the same host directory.
 #
-# ./data is mounted as /factorio and keeps config/, mods/ and scenarios/.
+# ./data is mounted as /factorio and keeps config/, mods/, saves/ and scenarios/.
 # Put server-settings.json, server-adminlist.json etc. into ./data/config.
-# Saves live in the named volume `saves` (mounted at /factorio/saves), so
-# `docker compose down -v` wipes the map while config and mods stay in ./data.
-# To bring your own save: docker compose cp my-save.zip factorio:/factorio/saves/save.zip
 #
 # Images are rebuilt by GitHub Actions whenever a new Factorio release appears
 # (checked every 2 hours) or the Dockerfiles change. The ofelia job below
@@ -30,7 +27,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./data:/factorio
-      - saves:/factorio/saves
     environment:
       - FACTORIO_PORT=34197
       - FACTORIO_RCON_PORT=27015
@@ -51,6 +47,3 @@ services:
       ofelia.job-run.factorio-update.image: "docker:cli"
       ofelia.job-run.factorio-update.volume: '["/var/run/docker.sock:/var/run/docker.sock", "${PWD}:${PWD}"]'
       ofelia.job-run.factorio-update.command: "sh -c 'cd ${PWD} && docker compose pull -q factorio && docker compose up -d factorio && docker image prune -f'"
-
-volumes:
-  saves:

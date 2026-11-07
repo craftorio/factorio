@@ -55,11 +55,7 @@ docker logs -f factorio
 
 The first start creates `./data` next to the compose file, fills `data/config` with the Factorio example
 settings, generates a random RCON password (printed in the log and saved to `data/config/RCON.pwd`) and creates a
-new map `save.zip` in the named Docker volume `factorio_saves`. The server is playable right away on `34197/udp`.
-
-Config, mods and scenarios live in `./data` on the host; saves live in the `factorio_saves` volume. That split lets
-you reset the world with `docker compose down -v` (deletes the saves volume, keeps `./data`) and start fresh with
-`docker compose up -d`. Back up the volume with `docker compose cp factorio:/factorio/saves ./saves-backup`.
+new map in `data/saves/save.zip`. The server is playable right away on `34197/udp`.
 
 **Expected on a fresh install:** the log ends with
 `Matching server connection failed: Error when creating server game: Missing token.`
@@ -70,22 +66,16 @@ cannot register in the public server browser. Fix it by editing `data/config/ser
 * either put your factorio.com `username` and `token` (from your [factorio.com profile](https://factorio.com/profile))
   for a public server, or set `"visibility": {"public": false, "lan": false}` for a private one;
 
-then `docker compose restart factorio`. Optionally add `data/config/server-adminlist.json`. To play your own map,
-copy it into the saves volume and restart:
-
-```bash
-docker compose cp my-save.zip factorio:/factorio/saves/save.zip
-docker compose restart factorio
-```
+then `docker compose restart factorio`. Optionally add `data/config/server-adminlist.json` and replace
+`data/saves/save.zip` with your own save.
 
 Always run `docker compose` from the directory that holds `docker-compose.yml`: the ofelia updater job mounts the
 project directory by its absolute path.
 
 **Migrating an existing server** (for example from the upstream `goofball222/factorio` image with data in
-`/opt/factorio`): stop the old container, move `config`, `mods` and `scenarios` into `./data`, put the new
-`docker-compose.yml` next to it, run `docker compose up -d`, then copy your save into the volume with
-`docker compose cp saves/save.zip factorio:/factorio/saves/save.zip` and `docker compose restart factorio`. Save files
-are compatible as long as the Factorio version is the same or newer.
+`/opt/factorio`): stop the old container, move `config`, `mods`, `saves` and `scenarios` into `./data`, put the new
+`docker-compose.yml` next to it and run `docker compose up -d`. Save files are compatible as long as the Factorio
+version is the same or newer.
 
 **Updates** are automatic: GitHub Actions publishes new images within two hours of a Factorio release, and the
 `ofelia` service in the compose file checks every 15 minutes, pulls the new image and recreates the server when
@@ -96,7 +86,7 @@ prefer to update manually with `docker compose pull && docker compose up -d`.
 
 ## Usage
 
-**The container has a single volume `/factorio` with the following structure** (the compose file mounts it from `./data` and puts `saves` into a separate named volume):
+**The container has a single volume `/factorio` (mounted from `./data` in the compose file) with the following structure:**
 
     factorio
     |-- config
@@ -148,15 +138,12 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./data:/factorio
-      - saves:/factorio/saves
     environment:
       - TZ=UTC
 
-volumes:
-  saves:
 ```
 
-[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with config and mods in `./data` next to the compose file, saves in the named volume `factorio_saves`, and an [ofelia](https://github.com/mcuadros/ofelia) job that every 15 minutes pulls the image and recreates the server when a new one was published.
+[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data stored in `./data` next to the compose file and an [ofelia](https://github.com/mcuadros/ofelia) job that every 15 minutes pulls the image and recreates the server when a new one was published.
 
 ---
 
