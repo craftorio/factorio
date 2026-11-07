@@ -2,9 +2,10 @@
 
 [![Build](https://github.com/craftorio/factorio/actions/workflows/build.yml/badge.svg)](https://github.com/craftorio/factorio/actions/workflows/build.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/craftorio/factorio.svg)](https://hub.docker.com/r/craftorio/factorio/) [![License](https://img.shields.io/github/license/craftorio/factorio.svg)](https://github.com/craftorio/factorio)
 
-Fork of [goofball222/factorio](https://github.com/goofball222/factorio). Images are rebuilt automatically every day
-against the current Factorio headless release reported by the [official API](https://factorio.com/api/latest-releases),
-so the tags below always track the latest versions.
+Fork of [goofball222/factorio](https://github.com/goofball222/factorio). GitHub Actions checks the
+[official API](https://factorio.com/api/latest-releases) every 2 hours and builds new images as soon as a new Factorio
+headless release appears; a full rebuild also runs once a day to pick up base image updates. The tags below always
+track the latest versions.
 
 Images are built for `linux/amd64` and `linux/arm64` and published to:
 
@@ -100,7 +101,7 @@ services:
 
 ```
 
-[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data stored in `./data` next to the compose file and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
+[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data stored in `./data` next to the compose file and an [ofelia](https://github.com/mcuadros/ofelia) job that every 15 minutes pulls the image and recreates the server when a new one was published.
 
 ---
 

@@ -2,7 +2,9 @@ name: Build
 
 on:
   schedule:
-    # Daily: pick up new Factorio releases and refreshed base images.
+    # Every 2 hours: check factorio.com for a new release and build only if one appeared.
+    - cron: "7 */2 * * *"
+    # Daily: full rebuild regardless, to pick up refreshed base images.
     - cron: "17 4 * * *"
   workflow_dispatch:
   push:
@@ -67,9 +69,15 @@ jobs:
           fi
 
   # Build each architecture natively on its own runner and push by digest.
+  # Scheduled version checks build only when a new Factorio release was found;
+  # the daily cron, pushes and manual runs always build.
   build:
     name: ${{ matrix.channel }} / ${{ matrix.variant }} / ${{ matrix.arch }}
     needs: versions
+    if: >-
+      needs.versions.outputs.changed == 'true' ||
+      github.event_name != 'schedule' ||
+      github.event.schedule == '17 4 * * *'
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
