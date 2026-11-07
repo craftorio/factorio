@@ -56,7 +56,13 @@ docker logs -f factorio
 
 Під час першого запуску поруч із compose-файлом створюється каталог `./data`, у `data/config` копіюються приклади
 налаштувань Factorio, генерується випадковий пароль RCON (виводиться в лог і зберігається в `data/config/RCON.pwd`)
-і створюється нова карта `data/saves/save.zip`. Сервер одразу доступний для гри на порту `34197/udp`.
+і створюється нова карта `save.zip` в іменованому томі Docker `factorio_saves`. Сервер одразу доступний для гри на
+порту `34197/udp`.
+
+Конфігурація, моди та сценарії зберігаються в `./data` на хості, а збереження в томі `factorio_saves`. Такий поділ
+дає змогу скинути світ командою `docker compose down -v` (видаляє том зі збереженнями, залишає `./data`) і почати
+заново через `docker compose up -d`. Резервну копію тому можна зробити командою
+`docker compose cp factorio:/factorio/saves ./saves-backup`.
 
 **Очікувано на чистій установці:** лог завершується рядком
 `Matching server connection failed: Error when creating server game: Missing token.`
@@ -67,15 +73,22 @@ docker logs -f factorio
 * або вкажіть свої `username` і `token` від factorio.com (з [профілю factorio.com](https://factorio.com/profile))
   для публічного сервера, або встановіть `"visibility": {"public": false, "lan": false}` для приватного;
 
-після цього виконайте `docker compose restart factorio`. За бажанням додайте `data/config/server-adminlist.json`
-і замініть `data/saves/save.zip` власним збереженням.
+після цього виконайте `docker compose restart factorio`. За бажанням додайте `data/config/server-adminlist.json`.
+Щоб грати на власній карті, скопіюйте її в том зі збереженнями та перезапустіть сервер:
+
+```bash
+docker compose cp my-save.zip factorio:/factorio/saves/save.zip
+docker compose restart factorio
+```
 
 Завжди запускайте `docker compose` з каталогу, де лежить `docker-compose.yml`: завдання оновлення ofelia монтує
 каталог проєкту за його абсолютним шляхом.
 
 **Міграція наявного сервера** (наприклад, з upstream-образу `goofball222/factorio` з даними в `/opt/factorio`):
-зупиніть старий контейнер, перемістіть `config`, `mods`, `saves` і `scenarios` у `./data`, покладіть поруч новий
-`docker-compose.yml` і виконайте `docker compose up -d`. Збереження сумісні, якщо версія Factorio така сама або новіша.
+зупиніть старий контейнер, перемістіть `config`, `mods` і `scenarios` у `./data`, покладіть поруч новий
+`docker-compose.yml`, виконайте `docker compose up -d`, а потім скопіюйте своє збереження в том командою
+`docker compose cp saves/save.zip factorio:/factorio/saves/save.zip` і виконайте `docker compose restart factorio`.
+Збереження сумісні, якщо версія Factorio така сама або новіша.
 
 **Оновлення** відбуваються автоматично: GitHub Actions публікує нові образи протягом двох годин після релізу
 Factorio, а сервіс `ofelia` з compose-файлу кожні 15 хвилин перевіряє, завантажує новий образ і перестворює сервер,
@@ -86,7 +99,7 @@ Factorio, а сервіс `ofelia` з compose-файлу кожні 15 хвил�
 
 ## Використання
 
-**Контейнер має єдиний том `/factorio` (у compose-файлі монтується з `./data`) з такою структурою:**
+**Контейнер має єдиний том `/factorio` з такою структурою** (compose-файл монтує його з `./data`, а `saves` виносить в окремий іменований том):
 
     factorio
     |-- config
@@ -139,13 +152,16 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./data:/factorio
+      - saves:/factorio/saves
     environment:
       - TZ=UTC
 
+volumes:
+  saves:
 ```
 
-[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) з даними в `./data` поруч
-із compose-файлом і завданням [ofelia](https://github.com/mcuadros/ofelia), яке кожні 15 хвилин завантажує образ
+[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) з конфігурацією та модами в `./data` поруч
+із compose-файлом, збереженнями в іменованому томі `factorio_saves` і завданням [ofelia](https://github.com/mcuadros/ofelia), яке кожні 15 хвилин завантажує образ
 і перестворює сервер, коли опубліковано новий.
 
 ---

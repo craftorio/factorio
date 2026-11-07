@@ -21,7 +21,7 @@ by hand when Factorio updates.
 | `*/root/usr/local/bin/` | `docker-entrypoint.sh` and `entrypoint-functions.sh`, copied into the image. |
 | `*/VERSION` | Factorio version for the channel. Written by `scripts/update-versions.sh`, do not edit by hand. |
 | `scripts/update-versions.sh` | Reads `https://factorio.com/api/latest-releases`, updates `VERSION` files, the tag table in `README.md` and `README_uk.md` (rows marked `<!-- stable -->` / `<!-- experimental -->`) and prepends a `CHANGELOG.md` entry. Idempotent. |
-| `docker-compose.yml` | Production compose: the server plus an `ofelia` job that pulls and recreates the server every 15 minutes. Data lives in `./data` (git-ignored). |
+| `docker-compose.yml` | Production compose: the server plus an `ofelia` job that pulls and recreates the server every 15 minutes. Config, mods and scenarios live in `./data` (git-ignored); saves live in the named volume `saves` (`factorio_saves`) so that `docker compose down -v` resets the world. |
 | `.github/workflows/build.yml` | The build pipeline, see below. |
 | `Makefile`, `*/Makefile` | Local `docker build` helpers (`make stable`, `make experimental`). |
 
