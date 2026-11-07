@@ -94,13 +94,13 @@ services:
       - "34197:34197/udp"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - .:/factorio
+      - ./data:/factorio
     environment:
       - TZ=UTC
 
 ```
 
-[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data stored next to the compose file and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
+[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data stored in `./data` next to the compose file and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
 
 ---
 

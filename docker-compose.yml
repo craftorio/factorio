@@ -3,8 +3,8 @@
 #   mkdir -p /opt/factorio && cp docker-compose.yml /opt/factorio/ && cd /opt/factorio
 #   docker compose up -d
 #
-# The current directory is mounted as /factorio and keeps config/, mods/, saves/ and scenarios/.
-# Put server-settings.json, server-adminlist.json etc. into ./config next to this file.
+# ./data is mounted as /factorio and keeps config/, mods/, saves/ and scenarios/.
+# Put server-settings.json, server-adminlist.json etc. into ./data/config.
 #
 # Images are rebuilt daily from the latest Factorio release, so watchtower below
 # keeps the running server on the current version. Use the `stable` tag for the
@@ -20,7 +20,7 @@ services:
       - "0.0.0.0:34197:34197/udp"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - .:/factorio
+      - ./data:/factorio
     environment:
       - FACTORIO_PORT=34197
       - FACTORIO_RCON_PORT=27015
