@@ -22,6 +22,10 @@ permissions:
   contents: write
   packages: write
 
+env:
+  GHCR_IMAGE: ghcr.io/${{ github.repository }}
+  DOCKERHUB_IMAGE: docker.io/${{ github.repository }}
+
 jobs:
   versions:
     name: Check Factorio releases
@@ -62,15 +66,17 @@ jobs:
             echo "::notice::DOCKERHUB_TOKEN secret is not set, pushing to GHCR only"
           fi
 
+  # Build each architecture natively on its own runner and push by digest.
   build:
-    name: ${{ matrix.channel }} / ${{ matrix.variant }}
+    name: ${{ matrix.channel }} / ${{ matrix.variant }} / ${{ matrix.arch }}
     needs: versions
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       matrix:
         channel: [stable, experimental]
         variant: [debian, alpine]
+        arch: [amd64, arm64]
     env:
       VERSION: ${{ matrix.channel == 'stable' && needs.versions.outputs.stable || needs.versions.outputs.experimental }}
     steps:
@@ -93,16 +99,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            name=ghcr.io/${{ github.repository }}
-            name=docker.io/${{ github.repository }},enable=${{ needs.versions.outputs.dockerhub == 'true' }}
-          flavor: |
-            latest=false
-            suffix=${{ matrix.variant == 'alpine' && '-alpine' || '' }}
-          tags: |
-            type=raw,value=latest,enable=${{ matrix.channel == 'stable' }}
-            type=raw,value=stable,enable=${{ matrix.channel == 'stable' }}
-            type=raw,value=experimental,enable=${{ matrix.channel == 'experimental' }}
-            type=raw,value=${{ env.VERSION }},enable=${{ matrix.channel == 'stable' || needs.versions.outputs.stable != needs.versions.outputs.experimental }}
+            name=${{ env.GHCR_IMAGE }}
+            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ needs.versions.outputs.dockerhub == 'true' }}
           labels: |
             org.opencontainers.image.vendor=Craftorio
             org.opencontainers.image.title=Factorio Headless Server
@@ -126,18 +124,101 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME || github.repository_owner }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push by digest
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: ./${{ matrix.channel }}
           file: ${{ steps.args.outputs.dockerfile }}
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           pull: true
           no-cache: true
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.GHCR_IMAGE }}${{ needs.versions.outputs.dockerhub == 'true' && format(',{0}', env.DOCKERHUB_IMAGE) || '' }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           build-args: |
             VERSION=${{ env.VERSION }}
             VCS_REF=${{ steps.args.outputs.vcs_ref }}
             BUILD_DATE=${{ steps.args.outputs.build_date }}
+
+      - name: Export digest
+        run: |
+          mkdir -p "${RUNNER_TEMP}/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v6
+        with:
+          name: digests-${{ matrix.channel }}-${{ matrix.variant }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Combine the per-arch images into one multi-arch manifest per tag.
+  manifest:
+    name: ${{ matrix.channel }} / ${{ matrix.variant }} manifest
+    needs: [versions, build]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [stable, experimental]
+        variant: [debian, alpine]
+    env:
+      VERSION: ${{ matrix.channel == 'stable' && needs.versions.outputs.stable || needs.versions.outputs.experimental }}
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v7
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-${{ matrix.channel }}-${{ matrix.variant }}-*
+          merge-multiple: true
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            name=${{ env.GHCR_IMAGE }}
+            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ needs.versions.outputs.dockerhub == 'true' }}
+          flavor: |
+            latest=false
+            suffix=${{ matrix.variant == 'alpine' && '-alpine' || '' }}
+          tags: |
+            type=raw,value=latest,enable=${{ matrix.channel == 'stable' }}
+            type=raw,value=stable,enable=${{ matrix.channel == 'stable' }}
+            type=raw,value=experimental,enable=${{ matrix.channel == 'experimental' }}
+            type=raw,value=${{ env.VERSION }},enable=${{ matrix.channel == 'stable' || needs.versions.outputs.stable != needs.versions.outputs.experimental }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: needs.versions.outputs.dockerhub == 'true'
+        uses: docker/login-action@v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME || github.repository_owner }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create and push manifest lists
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          for image in "$GHCR_IMAGE" ${{ needs.versions.outputs.dockerhub == 'true' && '"$DOCKERHUB_IMAGE"' || '' }}; do
+            tags=$(jq -cr --arg img "$image" '.tags | map(select(startswith($img + ":"))) | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+            # shellcheck disable=SC2046,SC2086
+            docker buildx imagetools create $tags $(printf "$image@sha256:%s " *)
+          done
+
+      - name: Inspect
+        run: |
+          jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON" | while read -r tag; do
+            docker buildx imagetools inspect "$tag"
+          done

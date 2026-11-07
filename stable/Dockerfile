@@ -3,6 +3,7 @@ FROM debian:bookworm-slim
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
+ARG TARGETARCH
 
 LABEL \
     org.opencontainers.image.vendor="Craftorio" \
@@ -36,8 +37,13 @@ RUN \
     && apt-get -qqy install apt-utils \
     && apt-get -qqy --no-install-recommends install \
         ca-certificates curl gosu procps xz-utils > /dev/null \
-    && curl -sSL https://www.factorio.com/get-download/$VERSION/headless/linux64 -o /tmp/factorio_headless_x64_$VERSION.tar.xz \
-    && tar -xJf /tmp/factorio_headless_x64_$VERSION.tar.xz -C /opt \
+    && case "$TARGETARCH" in \
+        amd64) FACTORIO_TARGET=linux64 ;; \
+        arm64) FACTORIO_TARGET=linux-arm64 ;; \
+        *) echo "Unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
+       esac \
+    && curl -sSL https://www.factorio.com/get-download/$VERSION/headless/$FACTORIO_TARGET -o /tmp/factorio_headless_$VERSION.tar.xz \
+    && tar -xJf /tmp/factorio_headless_$VERSION.tar.xz -C /opt \
     && bash -c 'mkdir -p {/factorio,/factorio/config,/factorio/mods,/factorio/saves,/factorio/scenarios}' \
     && ln -s /factorio/config /opt/factorio/config \
     && ln -s /factorio/mods /opt/factorio/mods \

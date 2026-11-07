@@ -24,7 +24,9 @@ MODDIR=${BASEDIR}/mods
 SAVEDIR=${BASEDIR}/saves
 SCENARIODIR=${BASEDIR}/scenarios
 
-FACTORIO=${BINDIR}/x64/factorio
+# Factorio ships the binary in bin/x64 (amd64) or bin/arm64 (arm64)
+FACTORIO=$(ls -1 "${BINDIR}"/*/factorio 2>/dev/null | head -n 1)
+FACTORIO=${FACTORIO:-${BINDIR}/x64/factorio}
 
 VOLDIR=${VOLDIR:-"/factorio"}
 VOLCONFIGDIR=${VOLDIR}/config

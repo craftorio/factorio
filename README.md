@@ -6,7 +6,7 @@ Fork of [goofball222/factorio](https://github.com/goofball222/factorio). Images 
 against the current Factorio headless release reported by the [official API](https://factorio.com/api/latest-releases),
 so the tags below always track the latest versions.
 
-Images are published to:
+Images are built for `linux/amd64` and `linux/arm64` and published to:
 
 * GitHub Container Registry: `ghcr.io/craftorio/factorio`
 * Docker Hub: `craftorio/factorio`
@@ -100,7 +100,7 @@ services:
 
 ```
 
-[Example production `docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/examples/docker-compose.yml) with data in `/opt/factorio` and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
+[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data in `/opt/factorio` and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
 
 ---
 

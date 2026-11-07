@@ -1,4 +1,4 @@
-# Example production setup: Factorio headless server with automatic image updates.
+# Factorio headless server with automatic image updates.
 #
 #   mkdir -p /opt/factorio && cp docker-compose.yml /opt/factorio/ && cd /opt/factorio
 #   docker compose up -d
