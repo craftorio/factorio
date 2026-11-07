@@ -1,3 +1,11 @@
+**2026-11-07**
+  * Stable Factorio v2.1.24
+  * Experimental Factorio v2.1.24
+---
+This repository is a fork of [goofball222/factorio](https://github.com/goofball222/factorio).
+Version bumps below are made automatically by the daily build workflow; older entries come from upstream.
+
+---
 **2026-06-23**
   * Experimental Factorio v[2.1.7](https://forums.factorio.com/134095)
 ---

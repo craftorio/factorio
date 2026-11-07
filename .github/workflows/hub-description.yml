@@ -1,4 +1,4 @@
-name: Hub Desc. Update
+name: Docker Hub Description
 
 on:
   workflow_dispatch:
@@ -9,17 +9,24 @@ on:
       - README.md
       - .github/workflows/hub-description.yml
 
+permissions:
+  contents: read
+
 jobs:
   dockerHubDescription:
     runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
-    -
-      uses: actions/checkout@v7
-    -
-      name: Docker Hub Description
-      uses: peter-evans/dockerhub-description@v5
-      with:
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-        repository: ${{ github.repository }}
-        short-description: ${{ github.event.repository.description }}
+      - name: Checkout
+        if: env.DOCKERHUB_TOKEN != ''
+        uses: actions/checkout@v7
+
+      - name: Update Docker Hub description
+        if: env.DOCKERHUB_TOKEN != ''
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME || github.repository_owner }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          short-description: ${{ github.event.repository.description }}

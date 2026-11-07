@@ -1,17 +1,29 @@
 # Containerized Factorio Headless Server
 
-[![Latest Build Status](https://github.com/goofball222/factorio/actions/workflows/build-latest.yml/badge.svg)](https://github.com/goofball222/factorio/actions/workflows/build-latest.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/goofball222/factorio.svg)](https://hub.docker.com/r/goofball222/factorio/) [![Docker Stars](https://img.shields.io/docker/stars/goofball222/factorio.svg)](https://hub.docker.com/r/goofball222/factorio/) [![License](https://img.shields.io/github/license/goofball222/factorio.svg)](https://github.com/goofball222/factorio)
+[![Build](https://github.com/craftorio/factorio/actions/workflows/build.yml/badge.svg)](https://github.com/craftorio/factorio/actions/workflows/build.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/craftorio/factorio.svg)](https://hub.docker.com/r/craftorio/factorio/) [![License](https://img.shields.io/github/license/craftorio/factorio.svg)](https://github.com/craftorio/factorio)
 
-| Docker Tag | Factorio Version | Description | Release Date |
+Fork of [goofball222/factorio](https://github.com/goofball222/factorio). Images are rebuilt automatically every day
+against the current Factorio headless release reported by the [official API](https://factorio.com/api/latest-releases),
+so the tags below always track the latest versions.
+
+Images are published to:
+
+* GitHub Container Registry: `ghcr.io/craftorio/factorio`
+* Docker Hub: `craftorio/factorio`
+
+| Docker Tag | Factorio Version | Description | Updated |
 | --- | :---: | --- | :---: |
-| [latest, stable](https://github.com/goofball222/factorio/blob/main/stable/Dockerfile) | [2.0.77](https://forums.factorio.com/133653) | Factorio headless server stable release | 2026-05-21 |
-| [experimental](https://github.com/goofball222/factorio/blob/main/experimental/Dockerfile) | [2.1.12](https://forums.factorio.com/135201) | Factorio headless server experimental release | 2026-07-21 |
-| [2.0.77](https://github.com/goofball222/factorio/releases/tag/2.0.77) | [2.0.77](https://forums.factorio.com/133653) | Factorio headless server stable static release | 2026-08-02 |
+| [latest, stable, 2.1.24](https://github.com/craftorio/factorio/blob/main/stable/Dockerfile)<br>[latest-alpine, stable-alpine, 2.1.24-alpine](https://github.com/craftorio/factorio/blob/main/stable/Dockerfile.alpine) | 2.1.24 | Factorio headless server stable release | 2026-11-07 | <!-- stable -->
+| [experimental](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile)<br>[experimental-alpine](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile.alpine) | 2.1.24 | Factorio headless server experimental release | 2026-11-07 | <!-- experimental -->
+
+Version-pinned tags (`2.0.77`, `2.0.77-alpine`) are published for the stable channel on every release, so you can pin a
+specific Factorio version. When the experimental channel points at a different version than stable it gets its own
+version tag as well.
 
 ---
 
-* [Recent changes, see: GitHub CHANGELOG.md](https://github.com/goofball222/factorio/blob/main/CHANGELOG.md)
-* [Report any bugs, issues or feature requests on GitHub](https://github.com/goofball222/factorio/issues)
+* [Recent changes, see: GitHub CHANGELOG.md](https://github.com/craftorio/factorio/blob/main/CHANGELOG.md)
+* [Report any bugs, issues or feature requests on GitHub](https://github.com/craftorio/factorio/issues)
 
 ---
 
@@ -62,7 +74,7 @@ A custom UID and GID can be configured for the container internal factorio user 
 ```bash
 $ docker run --name factorio -d \
     -p 34197:34197/udp \
-    goofball222/factorio
+    craftorio/factorio
 ```
 
 ---
@@ -71,13 +83,10 @@ $ docker run --name factorio -d \
 
 Have the container store the config, mods, saves, and scenarios on a local file-system or in a specific, known data volume (recommended for persistence and troubleshooting) and expose the RCON port for admin:
 
-```bash
-
-version: '3'
-
+```yaml
 services:
   factorio:
-    image: goofball222/factorio
+    image: craftorio/factorio
     container_name: factorio
     restart: unless-stopped
     ports:
@@ -91,7 +100,7 @@ services:
 
 ```
 
-[Example basic `docker-compose.yml` file](https://raw.githubusercontent.com/goofball222/factorio/main/examples/docker-compose.yml)
+[Example production `docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/examples/docker-compose.yml) with data in `/opt/factorio` and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
 
 ---
 
@@ -150,3 +159,4 @@ The RCON password can be set via the FACTORIO_RCON_PASSWORD ENV flag or loaded f
 
 [//]: # (Licensed under the Apache 2.0 license)
 [//]: # (Copyright 2019 The Goofball - goofball222@gmail.com)
+[//]: # (Copyright 2026 Craftorio - https://github.com/craftorio/factorio)

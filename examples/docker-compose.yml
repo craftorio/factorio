@@ -1,15 +1,38 @@
-version: '3'
+# Example production setup: Factorio headless server with automatic image updates.
+#
+#   mkdir -p /opt/factorio && cp docker-compose.yml /opt/factorio/ && cd /opt/factorio
+#   docker compose up -d
+#
+# The /factorio volume keeps config/, mods/, saves/ and scenarios/.
+# Put server-settings.json, server-adminlist.json etc. into /opt/factorio/config.
+#
+# Images are rebuilt daily from the latest Factorio release, so watchtower below
+# keeps the running server on the current version. Use the `stable` tag for the
+# stable channel or `experimental` for the experimental one.
 
 services:
   factorio:
-    image: goofball222/factorio
+    image: ghcr.io/craftorio/factorio:latest
     container_name: factorio
-    restart: unless-stopped
+    restart: always
     ports:
-      - "27015:27015"
-      - "34197:34197/udp"
+      - "0.0.0.0:27015:27015"
+      - "0.0.0.0:34197:34197/udp"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - .:/factorio
+      - /opt/factorio:/factorio
     environment:
-      - TZ=UTC
+      - FACTORIO_PORT=34197
+      - FACTORIO_RCON_PORT=27015
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  # Optional: pull the fresh image once a day and restart the server when it changes.
+  # Remove this service if you prefer to update manually with `docker compose pull && docker compose up -d`.
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: factorio-watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --cleanup --interval 86400

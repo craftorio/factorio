@@ -2,7 +2,8 @@
 
 # entrypoint-functions.sh script for Factorio headless server Docker container
 # License: Apache-2.0
-# Github: https://github.com/goofball222/factorio
+# Github: https://github.com/craftorio/factorio
+# Based on: https://github.com/goofball222/factorio
 ENTRYPOINT_FUNCTIONS_VERSION="1.1.0"
 # Last updated date: 2021-06-17
 
