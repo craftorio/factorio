@@ -86,7 +86,7 @@ Have the container store the config, mods, saves, and scenarios on a local file-
 ```yaml
 services:
   factorio:
-    image: craftorio/factorio
+    image: ghcr.io/craftorio/factorio:latest
     container_name: factorio
     restart: unless-stopped
     ports:
@@ -100,7 +100,7 @@ services:
 
 ```
 
-[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data in `/opt/factorio` and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
+[`docker-compose.yml`](https://github.com/craftorio/factorio/blob/main/docker-compose.yml) with data stored next to the compose file and [watchtower](https://containrrr.dev/watchtower/) that pulls the daily rebuilt image and restarts the server automatically.
 
 ---
 
