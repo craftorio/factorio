@@ -14,7 +14,7 @@
 # To bring your own save: docker compose cp my-save.zip factorio:/factorio/saves/save.zip
 #
 # Images are rebuilt by GitHub Actions whenever a new Factorio release appears
-# (checked every 2 hours) and once a day on top of that. The ofelia job below
+# (checked every 2 hours) or the Dockerfiles change. The ofelia job below
 # checks every 15 minutes whether a newer image was published and recreates the
 # server when it was. Use the `stable` tag for the stable channel or
 # `experimental` for the experimental one.

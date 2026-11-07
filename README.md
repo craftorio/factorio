@@ -6,8 +6,8 @@
 
 Fork of [goofball222/factorio](https://github.com/goofball222/factorio). GitHub Actions checks the
 [official API](https://factorio.com/api/latest-releases) every 2 hours and builds new images as soon as a new Factorio
-headless release appears; a full rebuild also runs once a day to pick up base image updates. The tags below always
-track the latest versions.
+headless release appears. Images are rebuilt only for a new Factorio version or a change to the Dockerfiles and
+entrypoint scripts. The tags below always track the latest versions.
 
 Images are built for `linux/amd64` and `linux/arm64` and published to:
 

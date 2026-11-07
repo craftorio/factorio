@@ -15,7 +15,7 @@ jobs:
     name: Close Stale Issues
     if: github.repository == 'craftorio/factorio'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/stale@v11

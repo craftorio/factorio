@@ -23,20 +23,24 @@ by hand when Factorio updates.
 | `scripts/update-versions.sh` | Reads `https://factorio.com/api/latest-releases`, updates `VERSION` files, the tag table in `README.md` and `README_uk.md` (rows marked `<!-- stable -->` / `<!-- experimental -->`) and prepends a `CHANGELOG.md` entry. Idempotent. |
 | `docker-compose.yml` | Production compose: the server plus an `ofelia` job that pulls and recreates the server every 15 minutes. Config, mods and scenarios live in `./data` (git-ignored); saves live in the named volume `saves` (`factorio_saves`) so that `docker compose down -v` resets the world. |
 | `.github/workflows/build.yml` | The build pipeline, see below. |
+| `.github/workflows/lint.yml` | actionlint + shellcheck + compose validation for workflow/script/compose changes. |
 | `Makefile`, `*/Makefile` | Local `docker build` helpers (`make stable`, `make experimental`). |
 
 ## CI pipeline (`build.yml`)
 
-Triggers: cron every 2 hours (version check), cron daily 04:17 UTC (full rebuild), push to `main`
-touching `stable/**`, `experimental/**`, the script or the workflow, and `workflow_dispatch`.
+Triggers: cron every 2 hours (version check), push to `main` touching `stable/**` or `experimental/**`,
+and `workflow_dispatch`. **Images must not be rebuilt for changes that do not affect them**: docs, compose,
+scripts and workflow edits are covered by `lint.yml` (actionlint, shellcheck, `docker compose config`), not by
+a build. Do not add such paths to the `build.yml` push trigger and do not add unconditional scheduled rebuilds.
 
 1. `versions` job runs `scripts/update-versions.sh`. If versions changed it commits the result to `main`
    as `github-actions[bot]` (such pushes do not retrigger workflows). Outputs the versions and whether
    Docker Hub credentials exist.
 2. `build` matrix: `channel` x `variant` (debian, alpine) x `arch` (amd64, arm64). Each arch builds
    **natively** on `ubuntu-24.04` / `ubuntu-24.04-arm` (no QEMU), runs a smoke test
-   (`factorio --version` from the built image) and pushes by digest. On the 2-hourly cron the job is
-   skipped unless a new Factorio version was found.
+   (`factorio --version` from the built image) and pushes by digest. On the cron the job is skipped
+   unless a new Factorio version was found. To rebuild without a version change (e.g. to pick up a
+   base image update) run the workflow manually.
 3. `manifest` matrix merges the per-arch digests into multi-arch tags with `docker buildx imagetools`.
 
 Tags: stable channel -> `latest`, `stable`, `<version>` (+ `-alpine` variants); experimental channel ->
