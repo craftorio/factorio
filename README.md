@@ -42,9 +42,49 @@ A custom UID and GID can be configured for the container internal factorio user 
 
 ---
 
+## Quick start
+
+```bash
+mkdir -p /opt/factorio && cd /opt/factorio
+curl -fsSLO https://raw.githubusercontent.com/craftorio/factorio/main/docker-compose.yml
+docker compose up -d
+docker logs -f factorio
+```
+
+The first start creates `./data` next to the compose file, fills `data/config` with the Factorio example
+settings, generates a random RCON password (printed in the log and saved to `data/config/RCON.pwd`) and creates a
+new map in `data/saves/save.zip`. The server is playable right away on `34197/udp`.
+
+**Expected on a fresh install:** the log ends with
+`Matching server connection failed: Error when creating server game: Missing token.`
+The example `server-settings.json` has `visibility.public = true` but no factorio.com credentials, so the server
+cannot register in the public server browser. Fix it by editing `data/config/server-settings.json`:
+
+* set `name`, `description`, `game_password`, `admins`;
+* either put your factorio.com `username` and `token` (from your [factorio.com profile](https://factorio.com/profile))
+  for a public server, or set `"visibility": {"public": false, "lan": false}` for a private one;
+
+then `docker compose restart factorio`. Optionally add `data/config/server-adminlist.json` and replace
+`data/saves/save.zip` with your own save.
+
+Always run `docker compose` from the directory that holds `docker-compose.yml`: the ofelia updater job mounts the
+project directory by its absolute path.
+
+**Migrating an existing server** (for example from the upstream `goofball222/factorio` image with data in
+`/opt/factorio`): stop the old container, move `config`, `mods`, `saves` and `scenarios` into `./data`, put the new
+`docker-compose.yml` next to it and run `docker compose up -d`. Save files are compatible as long as the Factorio
+version is the same or newer.
+
+**Updates** are automatic: GitHub Actions publishes new images within two hours of a Factorio release, and the
+`ofelia` service in the compose file checks every 15 minutes, pulls the new image and recreates the server when
+one is available. The server restarts only when the image actually changed; remove the `ofelia` service if you
+prefer to update manually with `docker compose pull && docker compose up -d`.
+
+---
+
 ## Usage
 
-**The container has a single volume `/factorio` with the following structure:**
+**The container has a single volume `/factorio` (mounted from `./data` in the compose file) with the following structure:**
 
     factorio
     |-- config
