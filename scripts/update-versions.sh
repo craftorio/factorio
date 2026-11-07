@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Fetch the current Factorio headless versions from the official API and
-# sync them into stable/VERSION, experimental/VERSION, README.md and CHANGELOG.md.
+# sync them into stable/VERSION, experimental/VERSION, README*.md and CHANGELOG.md.
 #
 # Usage: scripts/update-versions.sh
 # When run inside GitHub Actions it also writes step outputs:
@@ -22,15 +22,30 @@ for v in "$stable" "$experimental"; do
     [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Unexpected version from API: '$v'" >&2; exit 1; }
 done
 
+# README.md and its translations; the tag table rows are marked with <!-- stable --> / <!-- experimental -->.
+READMES=(README.md README_uk.md)
+
+# Row description per README file and channel.
+readme_desc() {
+    local file="$1" channel="$2"
+    case "$file:$channel" in
+        README_uk.md:stable)       echo "Стабільний реліз headless-сервера Factorio" ;;
+        README_uk.md:experimental) echo "Експериментальний реліз headless-сервера Factorio" ;;
+        *:stable)                  echo "Factorio headless server stable release" ;;
+        *:experimental)            echo "Factorio headless server experimental release" ;;
+    esac
+}
+
 readme_row() {
-    local channel="$1" version="$2"
+    local file="$1" channel="$2" version="$3"
     local base="$REPO_URL/blob/main/$channel"
+    local desc; desc="$(readme_desc "$file" "$channel")"
     case "$channel" in
         stable)
-            echo "| [latest, stable, $version]($base/Dockerfile)<br>[latest-alpine, stable-alpine, $version-alpine]($base/Dockerfile.alpine) | $version | Factorio headless server stable release | $TODAY | <!-- stable -->"
+            echo "| [latest, stable, $version]($base/Dockerfile)<br>[latest-alpine, stable-alpine, $version-alpine]($base/Dockerfile.alpine) | $version | $desc | $TODAY | <!-- stable -->"
             ;;
         experimental)
-            echo "| [experimental]($base/Dockerfile)<br>[experimental-alpine]($base/Dockerfile.alpine) | $version | Factorio headless server experimental release | $TODAY | <!-- experimental -->"
+            echo "| [experimental]($base/Dockerfile)<br>[experimental-alpine]($base/Dockerfile.alpine) | $version | $desc | $TODAY | <!-- experimental -->"
             ;;
     esac
 }
@@ -41,10 +56,13 @@ for channel in stable experimental; do
     current="$(tr -d '[:space:]' < "$channel/VERSION")"
     if [ "$current" != "$new" ]; then
         echo "$new" > "$channel/VERSION"
-        row="$(readme_row "$channel" "$new")"
-        awk -v row="$row" -v marker="<!-- $channel -->" \
-            'index($0, marker) { print row; next } { print }' README.md > README.md.tmp
-        mv README.md.tmp README.md
+        for readme in "${READMES[@]}"; do
+            [ -f "$readme" ] || continue
+            row="$(readme_row "$readme" "$channel" "$new")"
+            awk -v row="$row" -v marker="<!-- $channel -->" \
+                'index($0, marker) { print row; next } { print }' "$readme" > "$readme.tmp"
+            mv "$readme.tmp" "$readme"
+        done
         changes+=("  * ${channel^} Factorio v${new}")
         echo "$channel: $current -> $new"
     else

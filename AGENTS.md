@@ -20,7 +20,7 @@ by hand when Factorio updates.
 | `*/Dockerfile.alpine` | Alpine image on `frolvlad/alpine-glibc`. |
 | `*/root/usr/local/bin/` | `docker-entrypoint.sh` and `entrypoint-functions.sh`, copied into the image. |
 | `*/VERSION` | Factorio version for the channel. Written by `scripts/update-versions.sh`, do not edit by hand. |
-| `scripts/update-versions.sh` | Reads `https://factorio.com/api/latest-releases`, updates `VERSION` files, the README tag table (rows marked `<!-- stable -->` / `<!-- experimental -->`) and prepends a `CHANGELOG.md` entry. Idempotent. |
+| `scripts/update-versions.sh` | Reads `https://factorio.com/api/latest-releases`, updates `VERSION` files, the tag table in `README.md` and `README_uk.md` (rows marked `<!-- stable -->` / `<!-- experimental -->`) and prepends a `CHANGELOG.md` entry. Idempotent. |
 | `docker-compose.yml` | Production compose: the server plus an `ofelia` job that pulls and recreates the server every 15 minutes. Data lives in `./data` (git-ignored). |
 | `.github/workflows/build.yml` | The build pipeline, see below. |
 | `Makefile`, `*/Makefile` | Local `docker build` helpers (`make stable`, `make experimental`). |
@@ -54,6 +54,11 @@ Tags: stable channel -> `latest`, `stable`, `<version>` (+ `-alpine` variants); 
 * Never commit anything under `data/` and never add Factorio credentials, tokens, RCON passwords or
   `server-id.json` to the repo, including in examples or docs.
 * Do not edit `CHANGELOG.md` entries or `VERSION` files manually; run `scripts/update-versions.sh`.
+* `README.md` (English) is the source of truth for documentation. `README_uk.md` is its Ukrainian translation
+  and must be kept in sync: whenever the English README changes, apply the same change to `README_uk.md` in the
+  same commit. Keep the section order, links, tables and code blocks identical; translate only the prose. Any
+  future translation (`README_<lang>.md`) follows the same rule and must be added to `READMES` in
+  `scripts/update-versions.sh` and to the language switcher at the top of every README.
 
 ## Verifying changes locally
 

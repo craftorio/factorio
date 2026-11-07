@@ -52,7 +52,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add stable/VERSION experimental/VERSION README.md CHANGELOG.md
+          git add stable/VERSION experimental/VERSION README.md README_uk.md CHANGELOG.md
           git commit -m "Factorio stable ${{ steps.check.outputs.stable }} / experimental ${{ steps.check.outputs.experimental }}"
           git push origin HEAD:main
 
