@@ -1,3 +1,6 @@
+**2026-11-16**
+  * Experimental Factorio v2.1.25
+---
 **2026-11-07**
   * Stable Factorio v2.1.24
   * Experimental Factorio v2.1.24

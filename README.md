@@ -17,7 +17,7 @@ Images are built for `linux/amd64` and `linux/arm64` and published to:
 | Docker Tag | Factorio Version | Description | Updated |
 | --- | :---: | --- | :---: |
 | [latest, stable, 2.1.24](https://github.com/craftorio/factorio/blob/main/stable/Dockerfile)<br>[latest-alpine, stable-alpine, 2.1.24-alpine](https://github.com/craftorio/factorio/blob/main/stable/Dockerfile.alpine) | 2.1.24 | Factorio headless server stable release | 2026-11-07 | <!-- stable -->
-| [experimental](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile)<br>[experimental-alpine](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile.alpine) | 2.1.24 | Factorio headless server experimental release | 2026-11-07 | <!-- experimental -->
+| [experimental](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile)<br>[experimental-alpine](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile.alpine) | 2.1.25 | Factorio headless server experimental release | 2026-11-16 | <!-- experimental -->
 
 Version-pinned tags (`2.0.77`, `2.0.77-alpine`) are published for the stable channel on every release, so you can pin a
 specific Factorio version. When the experimental channel points at a different version than stable it gets its own

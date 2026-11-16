@@ -17,7 +17,7 @@ headless-сервера Factorio. Образи перезбираються ли
 | Тег Docker | Версія Factorio | Опис | Оновлено |
 | --- | :---: | --- | :---: |
 | [latest, stable, 2.1.24](https://github.com/craftorio/factorio/blob/main/stable/Dockerfile)<br>[latest-alpine, stable-alpine, 2.1.24-alpine](https://github.com/craftorio/factorio/blob/main/stable/Dockerfile.alpine) | 2.1.24 | Стабільний реліз headless-сервера Factorio | 2026-11-07 | <!-- stable -->
-| [experimental](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile)<br>[experimental-alpine](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile.alpine) | 2.1.24 | Експериментальний реліз headless-сервера Factorio | 2026-11-07 | <!-- experimental -->
+| [experimental](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile)<br>[experimental-alpine](https://github.com/craftorio/factorio/blob/main/experimental/Dockerfile.alpine) | 2.1.25 | Експериментальний реліз headless-сервера Factorio | 2026-11-16 | <!-- experimental -->
 
 Для стабільного каналу з кожним релізом публікуються теги з номером версії (`2.0.77`, `2.0.77-alpine`), тож можна
 зафіксувати конкретну версію Factorio. Якщо експериментальний канал вказує на іншу версію, ніж стабільний, він також
